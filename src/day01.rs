@@ -54,8 +54,8 @@ pub fn day01_a(path: &str) -> std::io::Result<u32> {
 }
 
 // TODO: day1_b
-pub fn day01_b() -> std::io::Result<u32> {
-    let file_content = read_to_string("data/day01.test.txt")?;
+pub fn day01_b(path: &str) -> std::io::Result<u32> {
+    let file_content = read_to_string(path)?;
     let mut left: Vec<u32> = Vec::new();
     let mut right: Vec<u32> = Vec::new();
     for line in file_content.lines() {
@@ -84,12 +84,12 @@ pub fn day01_b() -> std::io::Result<u32> {
             right.push(*second);
         }
     }
-    left.sort();
-    right.sort();
 
     let mut distance = 0;
-    for (l, r) in left.iter().zip(right) {
-        distance += l.abs_diff(r)
+    for (i, l) in left.iter().enumerate() {
+        for r in right.iter() {
+            distance += if l == r { *l } else { 0 }
+        }
     }
 
     println!("distance: {distance}");
@@ -103,10 +103,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day01a() {
+    fn test_day01a() {
         match day01_a("data/day01.test.txt") {
-            Ok(v) => assert_eq!(v, 12, "Expected test data result to be 11, got `{v}`"),
-            Err(e) => assert!(false, "Got error `{e}`"),
+            Ok(v) => assert_eq!(v, 11, "Expected test data result to be 11, got `{v}`"),
+            Err(e) => unreachable!("Got error `{e}`"),
+        };
+    }
+
+    #[test]
+    fn test_day01b() {
+        match day01_b("data/day01.test.txt") {
+            Ok(v) => assert_eq!(v, 31, "Expected test data result to be 31, got `{v}`"),
+            Err(e) => unreachable!("Got error `{e}`"),
         };
     }
 }
