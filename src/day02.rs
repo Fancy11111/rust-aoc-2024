@@ -4,14 +4,11 @@ pub fn day02_a(path: &str) -> std::io::Result<u32> {
     let file = fs::read_to_string(path)?;
     let file = file.lines().filter(|x| !x.is_empty());
     let mut res = 0;
-    for (i, l) in file
-        .map(|l| {
-            l.split(" ")
-                .map(|v| v.parse::<u32>())
-                .filter_map(Result::ok)
-        })
-        .enumerate()
-    {
+    for l in file.map(|l| {
+        l.split(" ")
+            .map(|v| v.parse::<u32>())
+            .filter_map(Result::ok)
+    }) {
         let offset_line = l.clone();
         let offset_line = offset_line.skip(1);
         let zipped = l.clone().zip(offset_line);
@@ -33,63 +30,40 @@ pub fn day02_b(path: &str) -> std::io::Result<u32> {
     for (i, l) in file
         .map(|l| {
             l.split(" ")
-                .map(|v| v.parse::<u32>())
+                .map(|v| v.parse::<i32>())
                 .filter_map(Result::ok)
         })
         .enumerate()
     {
-        let values = l.collect::<Vec<u32>>();
-        let mut l = 0;
-        let mut r = 1;
-        let mut asc: Option<bool> = None;
-        while l + 2 >= r && values.len() > r {
-            let left = match values.get(l) {
-                Some(v) => v,
-                None => break,
-            };
-            let right = match values.get(r) {
-                Some(v) => v,
-                None => break,
-            };
-
-            let asc_val = if asc.is_none() {
-                if left != right {
-                    let res = left > right;
-                    asc = Some(res);
-                    res
-                } else {
-                    println!("{i}: {left} == {right}");
-                    r += 1;
-                    continue;
-                }
-            } else {
-                asc.unwrap_or(false)
-            };
-
-            let diff = left.abs_diff(*right);
-
-            if asc_val && l <= r {
-                r += 1;
-                println!("{i}: {left} >= {right}");
-                continue;
-            } else if !asc_val && l >= r {
-                println!("{i}: {left} <= {right}");
-                r += 1;
-                continue;
-            } else if !(1..=3).contains(&diff) {
-                println!("{i}: {left} - {right}");
-                r += 1;
-                continue;
-            }
-
-            l += 1;
-            r += 1;
-        }
-        if l + 2 >= r && values.len() == r {
+        let diffs = l.clone().zip(l.clone().skip(1)).map(|(p, c)| p - c);
+        let all_negative = diffs.clone().all(|x| x < 0);
+        let all_positive = diffs.clone().all(|x| x > 0);
+        let all_in_range = diffs.clone().all(|x| (1..=3).contains(&x.abs()));
+        if all_in_range && (all_positive || all_negative) {
             res += 1;
-            println!("safe {i}: {l}, {r}, {}", values.len());
-        } else {
-            println!("unsafe {i}: {l}, {r}, {}", values.len());
+            continue;
+        }
+        let l = l.collect::<Vec<i32>>();
+        let mut j = 0;
+        let mut safe = false;
+        while j < l.len() && !safe {
+            let without_j = l
+                .clone()
+                .into_iter()
+                .enumerate()
+                .filter_map(|(idx, v)| if idx != j { Some(v) } else { None });
+            let diffs = without_j
+                .clone()
+                .zip(without_j.clone().skip(1))
+                .map(|(p, c)| p - c);
+            let all_negative = diffs.clone().all(|x| x < 0);
+            let all_positive = diffs.clone().all(|x| x > 0);
+            let all_in_range = diffs.clone().all(|x| (1..=3).contains(&x.abs()));
+            if all_in_range && (all_positive || all_negative) {
+                res += 1;
+                safe = true;
+            }
+            j += 1;
         }
     }
     Ok(res)
@@ -102,7 +76,7 @@ mod tests {
     #[test]
     fn test_day02_a() {
         match day02_a("data/day02.test.txt") {
-            Ok(v) => assert_eq!(v, 2, "Expected test data result to be 2, got `{v}`"),
+            Ok(v) => assert_eq!(2, v, "Expected test data result to be 2, got `{v}`"),
             Err(e) => unreachable!("Got error `{e}`"),
         }
     }
@@ -110,7 +84,7 @@ mod tests {
     #[test]
     fn test_day02_b() {
         match day02_b("data/day02.test.txt") {
-            Ok(v) => assert_eq!(v, 4, "Expected test data result to be 2, got `{v}`"),
+            Ok(v) => assert_eq!(4, v, "Expected test data result to be 4, got `{v}`"),
             Err(e) => unreachable!("Got error `{e}`"),
         }
     }
