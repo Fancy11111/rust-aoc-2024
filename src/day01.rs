@@ -48,8 +48,6 @@ pub fn day01_a(path: &str) -> std::io::Result<u32> {
         distance += l.abs_diff(r)
     }
 
-    println!("distance: {distance}");
-
     Ok(distance)
 }
 
@@ -91,8 +89,6 @@ pub fn day01_b(path: &str) -> std::io::Result<u32> {
             distance += if l == r { *l } else { 0 }
         }
     }
-
-    println!("distance: {distance}");
 
     Ok(distance)
 }
